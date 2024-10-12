@@ -37,15 +37,15 @@ To run run the app in your system
 or 
 ```./run.sh```
 
-![](Screenshot from 2024-10-13 01-26-56.png)
+![](w1.png)
 
-![](Screenshot from 2024-10-13 01-27-10.png)
+![](w2.png)
 
 
 ***For mac/linux***
 ```./run.sh```
 
-![](Screenshot from 2024-10-13 01-29-20.png)
+![](w3.png)
 
 
 
