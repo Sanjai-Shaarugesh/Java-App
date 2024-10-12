@@ -1,0 +1,348 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HospitalApp {
+    private List<Patient> patients = new ArrayList<>();
+    private static final String DATA_FILE = "patients.txt";
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(HospitalApp::new);
+    }
+
+    public HospitalApp() {
+        loadPatientsFromFile();
+        JFrame frame = new JFrame("Hospital Management System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(700, 500);
+        frame.getContentPane().setBackground(new Color(230, 240, 250)); // Light blue background
+
+        // Main layout
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Add Patient", createAddPatientPanel());
+        tabbedPane.addTab("View Patients", createViewPatientsPanel());
+
+        frame.add(tabbedPane);
+        frame.setVisible(true);
+    }
+
+    // Create the "Add Patient" tab
+    private JPanel createAddPatientPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(new Color(230, 240, 250)); // Light blue background
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        JLabel nameLabel = new JLabel("Name:");
+        JLabel ageLabel = new JLabel("Age:");
+        JLabel genderLabel = new JLabel("Gender:");
+        JLabel contactLabel = new JLabel("Contact:");
+        JLabel addressLabel = new JLabel("Address:");
+
+        JTextField nameField = new JTextField(15);
+        JTextField ageField = new JTextField(15);
+        JTextField genderField = new JTextField(15);
+        JTextField contactField = new JTextField(15);
+        JTextField addressField = new JTextField(15);
+
+        JButton addButton = createStyledButton("Add Patient", new Color(87, 150, 255), Color.WHITE);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(nameField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(ageLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(ageField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(genderLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(genderField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(contactLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(contactField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(addressLabel, gbc);
+        gbc.gridx = 1;
+        panel.add(addressField, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        panel.add(addButton, gbc);
+
+        // Add patient button action
+        addButton.addActionListener(e -> {
+            try {
+                String name = nameField.getText();
+                int age = Integer.parseInt(ageField.getText());
+                String gender = genderField.getText();
+                String contact = contactField.getText();
+                String address = addressField.getText();
+
+                Patient patient = new Patient(name, age, gender, contact, address);
+                patients.add(patient);
+                savePatientsToFile();
+
+                JOptionPane.showMessageDialog(null, "Patient added successfully!");
+
+                // Clear fields
+                nameField.setText("");
+                ageField.setText("");
+                genderField.setText("");
+                contactField.setText("");
+                addressField.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Please enter a valid number for age", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        return panel;
+    }
+
+  // Create the "View Patients" tab with a search feature
+private JPanel createViewPatientsPanel() {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBackground(new Color(230, 240, 250)); // Light blue background
+
+    // Search bar
+    JPanel searchPanel = new JPanel();
+    searchPanel.setBackground(new Color(230, 240, 250));
+    JTextField searchField = new JTextField(15);
+    JButton searchButton = createStyledButton("Search", new Color(87, 150, 255), Color.WHITE);
+    searchPanel.add(new JLabel("Search by Name:"));
+    searchPanel.add(searchField);
+    searchPanel.add(searchButton);
+    panel.add(searchPanel, BorderLayout.NORTH);
+
+    // Display Name, Age, Gender, Contact, and Address columns
+    String[] columnNames = {"Name", "Age", "Gender", "Contact", "Address"};
+    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+    JTable table = new JTable(tableModel);
+    JScrollPane scrollPane = new JScrollPane(table);
+
+    // Load all data into the table
+    loadTableData(tableModel, patients);
+
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    // Add "Delete" and "Update" buttons
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground(new Color(230, 240, 250)); // Match the background
+
+    JButton deleteButton = createStyledButton("Delete Selected", new Color(255, 87, 87), Color.WHITE);
+    JButton updateButton = createStyledButton("Update Selected", new Color(87, 150, 255), Color.WHITE);
+
+    buttonPanel.add(deleteButton);
+    buttonPanel.add(updateButton);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    // Delete button action listener
+    deleteButton.addActionListener(e -> {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            patients.remove(selectedRow); // Remove from patient list
+            tableModel.removeRow(selectedRow); // Remove from table
+            savePatientsToFile(); // Save the updated list to file
+            JOptionPane.showMessageDialog(null, "Patient deleted successfully");
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select a patient to delete", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    // Update button action listener
+    updateButton.addActionListener(e -> {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            // Get current values and show them in input dialogs
+            String newName = JOptionPane.showInputDialog("Enter new name", tableModel.getValueAt(selectedRow, 0));
+            String newAgeText = JOptionPane.showInputDialog("Enter new age", tableModel.getValueAt(selectedRow, 1));
+            String newGender = JOptionPane.showInputDialog("Enter new gender", tableModel.getValueAt(selectedRow, 2));
+            String newContact = JOptionPane.showInputDialog("Enter new contact", tableModel.getValueAt(selectedRow, 3));
+            String newAddress = JOptionPane.showInputDialog("Enter new address", tableModel.getValueAt(selectedRow, 4));
+
+            try {
+                int newAge = Integer.parseInt(newAgeText);
+                Patient patient = patients.get(selectedRow);
+                patient.setName(newName);
+                patient.setAge(newAge);
+                patient.setGender(newGender);
+                patient.setContact(newContact);
+                patient.setAddress(newAddress);
+
+                tableModel.setValueAt(newName, selectedRow, 0);
+                tableModel.setValueAt(newAge, selectedRow, 1);
+                tableModel.setValueAt(newGender, selectedRow, 2);
+                tableModel.setValueAt(newContact, selectedRow, 3);
+                tableModel.setValueAt(newAddress, selectedRow, 4);
+
+                savePatientsToFile();
+                JOptionPane.showMessageDialog(null, "Patient updated successfully");
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Please enter a valid number for age", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please select a patient to update", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    // Search button action listener
+    searchButton.addActionListener(e -> {
+        String searchTerm = searchField.getText().toLowerCase(); // Get search input
+        if (searchTerm.isEmpty()) {
+            // If search field is empty, reload all patients
+            loadTableData(tableModel, patients);
+        } else {
+            // Filter patients list based on search term (matching name)
+            List<Patient> filteredPatients = new ArrayList<>();
+            for (Patient p : patients) {
+                if (p.getName().toLowerCase().contains(searchTerm)) {
+                    filteredPatients.add(p);
+                }
+            }
+            // Load only the filtered patients into the table
+            loadTableData(tableModel, filteredPatients);
+        }
+    });
+
+    return panel;
+}
+
+// Helper method to load data into the table
+private void loadTableData(DefaultTableModel tableModel, List<Patient> patientList) {
+    tableModel.setRowCount(0); // Clear existing rows
+    for (Patient p : patientList) {
+        Object[] row = {p.getName(), p.getAge(), p.getGender(), p.getContact(), p.getAddress()};
+        tableModel.addRow(row);
+    }
+}
+
+
+    // Create a styled button with rounded corners
+    private JButton createStyledButton(String text, Color backgroundColor, Color textColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(backgroundColor);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+
+            @Override
+            protected void paintBorder(Graphics g) {
+                // No border painting
+            }
+        };
+        button.setForeground(textColor);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        return button;
+    }
+
+    // Save patients to file
+    private void savePatientsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_FILE))) {
+            for (Patient patient : patients) {
+                writer.write(patient.getName() + "," + patient.getAge() + "," + patient.getGender() + "," + patient.getContact() + "," + patient.getAddress());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load patients from file
+    private void loadPatientsFromFile() {
+        File file = new File(DATA_FILE);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length == 5) {
+                        String name = parts[0];
+                        int age = Integer.parseInt(parts[1]);
+                        String gender = parts[2];
+                        String contact = parts[3];
+                        String address = parts[4];
+                        patients.add(new Patient(name, age, gender, contact, address));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+// The Patient class
+class Patient {
+    private String name;
+    private int age;
+    private String gender;
+    private String contact;
+    private String address;
+
+    public Patient(String name, int age, String gender, String contact, String address) {
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+        this.contact = contact;
+        this.address = address;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+}
+
