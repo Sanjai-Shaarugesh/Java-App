@@ -2,6 +2,16 @@
 
 # Hospital Management System
 
+### Screenshots
+
+![Hospital Management System User Interface](jp.jpeg)
+
+
+![Hospital Management System User Interface](jp2.jpeg)
+
+
+![](j3.jpeg)
+
 ### Aim
 The **Hospital Management System** is designed to streamline patient management in hospitals by providing a modern, user-friendly interface. This application is built using Java Swing, featuring a dark theme, rounded corner input fields, and intuitive navigation for efficient hospital operations. It allows hospital staff to add, update, view, and delete patient records, while providing a smooth search and data export experience.
 
@@ -16,15 +26,7 @@ The **Hospital Management System** is designed to streamline patient management 
 - **Responsive Buttons**: Rounded, gradient-styled buttons that improve user experience and visual appeal.
 - **File-Based Data Storage**: Patient data is persistently stored in a local file, ensuring availability even after restarting the application.
 
-### Screenshots
 
-![Hospital Management System User Interface](jp.jpeg)
-
-
-![Hospital Management System User Interface](jp2.jpeg)
-
-
-![](j3.jpeg)
 
 
 - **Add Patient Panel**: A modern form with all essential patient details.
