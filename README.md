@@ -34,7 +34,8 @@ The **Hospital Management System** is designed to streamline patient management 
 
 ## Run the App
 To run run the app in your system
-***For Windows **
+
+***For Windows run***
 ```` sh run.sh````
 or 
 ```./run.sh```
@@ -44,7 +45,7 @@ or
 ![](w2.png)
 
 
-***For mac/linux***
+***For mac/linux run***
 ```./run.sh```
 
 ![](w3.png)
